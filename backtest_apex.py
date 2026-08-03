@@ -9,6 +9,10 @@ Follows C:\\Users\\Alex\\.claude\\skills\\backtest protocol:
   - drawdown, Sharpe, win rate, trade count reported alongside return
   - baselines on the SAME data (Donchian-only 30/15, Supertrend-only 10/3.0)
 
+Combined signal (champion+, 2026-08-03): entry = close > Donchian upper(30,
+shifted 1) AND Supertrend(10,3.0) dir up AND close > SMA200; exit = Supertrend
+flip ONLY (the DC15 channel exit was removed — research/flagship_champion.py).
+
 Variants per symbol:
   A) combined signal, full-compounding (validated convention, 0.1%/side)
   B) combined signal + ATR overlay, EUR 500 start (deployment-realistic, 0.1% + 0.05% slip/side)
@@ -41,7 +45,7 @@ SLIP = 0.0005        # deployment variant adds this per side
 START_EUR = 500.0
 
 # Strategy params under test (fixed a priori — chosen from prior OOS analysis)
-DON_E, DON_X = 30, 15
+DON_E, DON_X = 30, 15  # DON_X now feeds only the donchian-only baseline (C) + parity check
 ST_P, ST_M = 10, 3.0
 SMA_P = 200
 
@@ -128,10 +132,11 @@ def parity_check(df, symbol):
     # donchian channels vs pandas rolling().shift(1)
     e_high = df["high"].rolling(DON_E).max().shift(1).values
     x_low = df["low"].rolling(DON_X).min().shift(1).values
+    xl_bot = bot.rolling_min([c["low"] for c in candles], DON_X)  # baseline/parity only
     eh_mism = sum(1 for i in range(DON_E, len(df))
                   if not np.isclose(ind["entry_high"][i], e_high[i], rtol=1e-9))
     xl_mism = sum(1 for i in range(DON_X, len(df))
-                  if not np.isclose(ind["exit_low"][i], x_low[i], rtol=1e-9))
+                  if not np.isclose(xl_bot[i], x_low[i], rtol=1e-9))
     print(f"  parity {symbol} donchian mismatches: entry_high {eh_mism}, exit_low {xl_mism}")
 
     if mism > 0 or eh_mism > 0 or xl_mism > 0:
@@ -277,7 +282,7 @@ def backtest_overlay(candles, ind, fee, slip, start_i, end_i, start_equity=START
                 pos["hard_stop"] = trail
 
         # 3) signal exit at close
-        if pos is not None and exit_sig(candles, i, ind):
+        if pos is not None and exit_sig(candles, i, ind, use_st=True, use_don=False):  # champion+
             fill = bar["close"] * (1 - cost)
             proceeds = pos["qty"] * fill
             pnl = proceeds - pos["notional"]
@@ -371,7 +376,8 @@ def main():
         sys.stdout.reconfigure(errors="replace")  # cp1252 consoles can't encode → etc.
     print("=" * 100)
     print("APEX-TRADER PRE-DEPLOYMENT BACKTEST")
-    print(f"Strategy: Donchian {DON_E}/{DON_X} + Supertrend {ST_P}/{ST_M} + SMA{SMA_P} regime filter")
+    print(f"Strategy: entry Donchian {DON_E} breakout + Supertrend {ST_P}/{ST_M} up + SMA{SMA_P} regime | "
+          f"exit = Supertrend flip only (champion+)")
     print(f"Fees: 0.1%/side (variants A, C) | 0.1% + 0.05% slippage/side (variant B, deployment)")
     print("=" * 100)
 
@@ -389,10 +395,12 @@ def main():
 
         sym = {}
 
-        # A) combined, full compounding — full period and OOS
-        curve, trades = backtest_compounding(candles, ind, FEE, start_i, n)
+        # A) combined, full compounding — full period and OOS (champion+: ST-flip exit only)
+        curve, trades = backtest_compounding(candles, ind, FEE, start_i, n,
+                                             exit_flags=(False, True))
         sym["A_full"] = metrics(curve, trades)
-        curve, trades = backtest_compounding(candles, ind, FEE, oos_start, n)
+        curve, trades = backtest_compounding(candles, ind, FEE, oos_start, n,
+                                             exit_flags=(False, True))
         sym["A_oos"] = metrics(curve, trades)
 
         # B) combined + overlay (deployment) — full period and OOS
@@ -444,22 +452,26 @@ def main():
     # ── Parameter sensitivity (neighbors), OOS, variant A on both symbols ──
     print("\n" + "=" * 100)
     print("PARAMETER SENSITIVITY (OOS, combined signal, full-compounding, 0.1%/side)")
-    grid = [(25, 12, 10, 3.0), (30, 15, 10, 2.5), (30, 15, 10, 3.0),
-            (30, 15, 10, 3.5), (35, 18, 10, 3.0), (40, 20, 10, 3.0), (30, 15, 14, 3.0)]
+    # champion+ neighbor grid: vary DC entry, ST period/mult, SMA (exit is ST flip only)
+    grid = [(30, 10, 3.0, 200),  # chosen point
+            (25, 10, 3.0, 200), (35, 10, 3.0, 200), (40, 10, 3.0, 200),
+            (30, 10, 2.5, 200), (30, 10, 3.5, 200), (30, 14, 3.0, 200),
+            (30, 10, 3.0, 150), (30, 10, 3.0, 250)]
     sens = {}
-    for (de, dx, sp, sm) in grid:
+    for (de, sp, sm, sma_p) in grid:
         row = []
         for symbol in SYMBOLS:
             df = fetch_history(symbol)
             candles = to_candles(df)
-            ind = build_indicators(candles, de, dx, sp, sm, SMA_P)
+            ind = build_indicators(candles, de, DON_X, sp, sm, sma_p)
             n = len(candles)
             oos_start = bot.MIN_CANDLES + int((n - bot.MIN_CANDLES) * 0.7)
-            curve, trades = backtest_compounding(candles, ind, FEE, oos_start, n)
+            curve, trades = backtest_compounding(candles, ind, FEE, oos_start, n,
+                                                 exit_flags=(False, True))
             row.append(metrics(curve, trades))
-        sens[(de, dx, sp, sm)] = row
-        print(f"  DC {de}/{dx} ST {sp}/{sm}: BTC {fmt(row[0])}")
-        print(f"{'':>22} ETH {fmt(row[1])}")
+        sens[(de, sp, sm, sma_p)] = row
+        print(f"  DC {de} ST {sp}/{sm} SMA{sma_p}: BTC {fmt(row[0])}")
+        print(f"{'':>26} ETH {fmt(row[1])}")
     results["sensitivity"] = {str(k): v for k, v in sens.items()}
 
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backtest_results.json")

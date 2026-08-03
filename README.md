@@ -14,7 +14,9 @@ by default; one variable flip to go live.
 - Close > SMA(200)
 
 **Exit** (first trigger wins):
-- Close < Donchian lower(15, shifted 1), or Supertrend flips down (signal exit)
+- Supertrend(10, 3.0) flips down (signal exit). The Donchian lower(15) exit leg
+  was removed on 2026-08-03 — it sat below the Supertrend band on ~100% of bars
+  and only cut winners early; OOS Sharpe improved on both symbols after removal.
 - Chandelier hard stop: highest close since entry − 6×ATR(14) at entry (stop exit, 48h per-symbol cooldown)
 
 **Risk overlay (locked deployment config):**
@@ -36,10 +38,10 @@ as above. OOS = last 30% of history after a 210-bar warmup, parameters frozen.
 
 | Variant | Symbol | OOS return | OOS max DD | OOS Sharpe | OOS trades | Full-period return | Full max DD |
 |---|---|---|---|---|---|---|---|
-| **B (deployed)** | BTC | +8.5% | −10.9% | 0.37 | 12 | +136.9% | −19.1% |
-| **B (deployed)** | ETH | +17.0% | −6.9% | 0.84 | 5 | +105.0% | −18.4% |
-| A (signal only, all-in) | BTC | +69.6% | −28.6% | 0.73 | 10 | +7,723% | −50.0% |
-| A (signal only, all-in) | ETH | +70.4% | −24.2% | 0.88 | 5 | +1,733.9% | −50.8% |
+| **B (deployed)** | BTC | +9.8% | −11.0% | 0.42 | 11 | +155.0% | −15.2% |
+| **B (deployed)** | ETH | +19.2% | −7.3% | 0.83 | 4 | +117.0% | −16.5% |
+| A (signal only, all-in) | BTC | +78.7% | −28.8% | 0.78 | 9 | +9,873.6% | −39.2% |
+| A (signal only, all-in) | ETH | +91.4% | −25.6% | 1.01 | 4 | +2,852.1% | −44.2% |
 | Buy & hold (context) | BTC | +121.1% | −51.7% | 0.77 | — | — | — |
 | Buy & hold (context) | ETH | −25.2% | −66.7% | — | — | — | — |
 

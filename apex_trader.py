@@ -6,7 +6,10 @@ Strategy (validated in backtests on 2020→2026 Coinbase daily data):
   ENTRY: flat AND close > Donchian upper(30, shifted 1)
          AND Supertrend(10, 3.0) direction == +1
          AND close > SMA200 (regime filter)
-  EXIT:  close < Donchian lower(15, shifted 1) OR Supertrend flips to -1
+  EXIT:  Supertrend flips to -1 (signal exit). Champion+ 2026-08-03: the
+         Donchian lower(15) exit leg was removed — it sat below the ST band
+         on ~100% of bars and only cut winners early; OOS Sharpe improved on
+         both symbols (research/flagship_champion.py).
   Signals act on the most recently CLOSED daily candle only.
 
 Risk overlay (deterministic, runs every cycle — the LLM cannot override it):
@@ -68,7 +71,6 @@ SYMBOLS = ["BTC-EUR", "ETH-EUR"]
 
 # Strategy parameters (validated)
 DONCHIAN_ENTRY_PERIOD = 30
-DONCHIAN_EXIT_PERIOD = 15
 SUPERTREND_PERIOD = 10
 SUPERTREND_MULT = 3.0
 SMA_PERIOD = 200
@@ -565,12 +567,10 @@ def compute_indicators(candles):
     """All indicator series for the candle list. Returns dict of lists (aligned)."""
     closes = [c["close"] for c in candles]
     highs = [c["high"] for c in candles]
-    lows = [c["low"] for c in candles]
     direction, upper_band, lower_band = supertrend(candles)
     return {
         "close": closes,
         "entry_high": rolling_max(highs, DONCHIAN_ENTRY_PERIOD),  # shifted by 1
-        "exit_low": rolling_min(lows, DONCHIAN_EXIT_PERIOD),      # shifted by 1
         "sma200": sma(closes, SMA_PERIOD),
         "atr": atr_series(candles, ATR_PERIOD),
         "st_dir": direction,
@@ -586,18 +586,17 @@ def signal_for(candles, ind):
     i = len(candles) - 1
     close = candles[i]["close"]
     entry_high = ind["entry_high"][i]
-    exit_low = ind["exit_low"][i]
     sma200 = ind["sma200"][i]
     st_dir = ind["st_dir"][i]
 
-    if entry_high is None or exit_low is None or sma200 is None:
+    if entry_high is None or sma200 is None:
         return {"entry": False, "exit": False, "warmup": True}
 
     breakout = close > entry_high
     trend_up = st_dir == 1
     regime_ok = close > sma200
     entry = breakout and trend_up and regime_ok
-    exit_sig = (close < exit_low) or (st_dir == -1)
+    exit_sig = (st_dir == -1)  # champion+: supertrend flip is the only signal exit
 
     return {
         "entry": entry,
@@ -607,7 +606,6 @@ def signal_for(candles, ind):
         "regime_ok": regime_ok,
         "close": close,
         "entry_high": entry_high,
-        "exit_low": exit_low,
         "sma200": sma200,
         "st_dir": st_dir,
         "atr": ind["atr"][i],
@@ -997,13 +995,9 @@ def run_cycle():
                 pos["hard_stop"] = trail
 
             if not stopped and sig["exit"]:
-                reason = []
-                if sig["close"] < sig["exit_low"]:
-                    reason.append(f"close €{sig['close']:.2f} < Donchian lower €{sig['exit_low']:.2f}")
-                if sig["st_dir"] == -1:
-                    reason.append("supertrend flipped DOWN")
-                trade = execute_sell(state, symbol, "; ".join(reason), price=sig["close"], dry_run=DRY_RUN)
-                actions.append(f"SELL {symbol} ({'; '.join(reason)})")
+                reason = "supertrend flipped DOWN"  # champion+: ST flip is the only signal exit
+                trade = execute_sell(state, symbol, reason, price=sig["close"], dry_run=DRY_RUN)
+                actions.append(f"SELL {symbol} ({reason})")
             else:
                 print(f"📊 {symbol}: holding ({sig['close']:.2f}, stop {pos['hard_stop']:.2f})")
 
