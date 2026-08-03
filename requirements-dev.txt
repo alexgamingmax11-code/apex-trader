@@ -1,0 +1,4 @@
+# Dev-only: backtest_apex.py and research scripts need these; the live bot does not.
+-r requirements.txt
+pandas>=2.2
+numpy>=1.26

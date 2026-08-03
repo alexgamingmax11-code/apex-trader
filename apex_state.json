@@ -1,0 +1,22 @@
+{
+  "cash_eur": 500.0,
+  "starting_capital_eur": 500.0,
+  "positions": {},
+  "closed_trades": [],
+  "cooldowns": {},
+  "day": {
+    "date": "2026-08-03",
+    "start_equity": 500.0,
+    "halted": false
+  },
+  "last_signal_candle": {
+    "BTC-EUR": 1785628800,
+    "ETH-EUR": 1785628800
+  },
+  "last_digest_date": "2026-08-03",
+  "last_hold_email": 0.0,
+  "last_fail_email": 0.0,
+  "total_fees_eur": 0.0,
+  "created_at": "2026-08-03T15:13:17.629692+00:00",
+  "live_trading": false
+}

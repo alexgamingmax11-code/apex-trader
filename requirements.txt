@@ -1,0 +1,3 @@
+# Runtime dependencies for apex_trader.py (stdlib otherwise: json/urllib-free via requests)
+requests>=2.31
+cryptography>=42

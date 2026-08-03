@@ -1,0 +1,19 @@
+# Secrets — never commit
+.env
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Corrupted-state quarantine files
+*.corrupt
+
+# Backtest/research artifacts (regenerable; backtests self-populate data/)
+data/
+research/
+backtest_results.json
+
+# NOTE: apex_state.json and apex_decisions.jsonl are intentionally TRACKED.
+# They are the persistence layer for the GitHub Actions runner — do not ignore.

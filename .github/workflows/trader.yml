@@ -1,0 +1,69 @@
+name: apex-trader
+
+on:
+  schedule:
+    # GitHub-hosted cron is best-effort and misses ~13% of 15-min ticks.
+    # The cron-job.org pinger (repository_dispatch) is the real metronome;
+    # this schedule exists only as a fallback heartbeat.
+    - cron: "*/15 * * * *"
+  repository_dispatch:
+    types: [run-trader]
+  workflow_dispatch:
+
+concurrency:
+  group: apex-trader
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run one trading cycle
+        env:
+          RUN_ONCE: "true"
+          # Flip to "true" via: gh variable set LIVE_TRADING --body true
+          LIVE_TRADING: ${{ vars.LIVE_TRADING || 'false' }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          REVOLUT_X_API_KEY: ${{ secrets.REVOLUT_X_API_KEY }}
+          REVOLUT_X_PRIVATE_KEY: ${{ secrets.REVOLUT_X_PRIVATE_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.GMAIL_ADDRESS }}
+        run: python apex_trader.py
+
+      # Runs even if the trading step failed: state may still have moved
+      # (e.g. circuit-breaker flag) and must be persisted for the next tick.
+      - name: Commit + push state
+        if: always()
+        run: |
+          git config user.name "apex-trader-bot"
+          git config user.email "apex-trader-bot@users.noreply.github.com"
+          git add apex_state.json apex_decisions.jsonl 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no state changes"
+            exit 0
+          fi
+          git commit -m "state: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase && git push; then
+              exit 0
+            fi
+            echo "push attempt $attempt failed; retrying"
+            sleep $((attempt * 5))
+          done
+          exit 1
