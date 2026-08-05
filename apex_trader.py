@@ -53,6 +53,7 @@ import time
 import traceback
 import uuid
 from datetime import datetime, timedelta, timezone
+from email.header import Header
 from email.mime.text import MIMEText
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -103,6 +104,9 @@ EMAIL_ON_TRADE = os.environ.get("EMAIL_ON_TRADE", "true").lower() == "true"
 EMAIL_ON_FAILURE = os.environ.get("EMAIL_ON_FAILURE", "true").lower() == "true"
 EMAIL_DAILY_DIGEST = os.environ.get("EMAIL_DAILY_DIGEST", "true").lower() == "true"
 EMAIL_ON_HOLD = os.environ.get("EMAIL_ON_HOLD", "false").lower() == "true"
+# Phone push via ntfy.sh — free, no signup; the topic name IS the secret, so
+# keep it unguessable. Empty = push silently skipped (fail-open, like email).
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 HOLD_EMAIL_HOURS = 1
 FAIL_EMAIL_SECONDS = 3600
 
@@ -165,6 +169,7 @@ RAW_PEM_KEY = os.environ.get("REVOLUT_X_PRIVATE_KEY", RAW_PEM_KEY)
 GMAIL_ADDRESS = os.environ.get("GMAIL_ADDRESS", GMAIL_ADDRESS)
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", GMAIL_APP_PASSWORD)
 NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", GMAIL_ADDRESS)
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", NTFY_TOPIC)
 
 
 # ── Small helpers ─────────────────────────────────────────────────────────────
@@ -636,6 +641,26 @@ def send_email(subject, body, force=False):
         return False
 
 
+def send_push(title, body, priority="default"):
+    """Phone push via ntfy.sh. Fail-open: unset topic or network error just
+    prints a warning — a dead push channel must never block a trade."""
+    if not NTFY_TOPIC:
+        return False
+    try:
+        resp = requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=body.encode("utf-8"),
+            headers={"Title": Header(title, "utf-8").encode(), "Priority": priority},
+            timeout=10,
+        )
+        ok = resp.status_code == 200
+        print(f"📲 Push {'sent' if ok else f'HTTP {resp.status_code}'}: {title}")
+        return ok
+    except Exception as e:
+        print(f"⚠️ Push failed: {e}")
+        return False
+
+
 def maybe_send_hold_email(state, equity, actions):
     """Throttled HOLD/status email (off by default in the new bot)."""
     if not EMAIL_ON_HOLD:
@@ -855,6 +880,11 @@ def execute_buy(state, symbol, sig, equity, dry_run=False):
              "notional": notional, "stop": pos["hard_stop"], "live": LIVE_TRADING,
              "venue_order_id": venue_id, "signal": sig}
     log_decision(trade)
+    send_push(
+        f"🟢 apex BUY {symbol}{' (LIVE)' if LIVE_TRADING else ''}",
+        f"@ €{fill_price:.2f} · €{notional:.2f} · stop €{pos['hard_stop']:.2f}",
+        priority="high",
+    )
     if EMAIL_ON_TRADE:
         send_email(
             f"🟢 apex-trader BUY {symbol} €{notional:.2f}{' (LIVE)' if LIVE_TRADING else ''}",
@@ -915,6 +945,11 @@ def execute_sell(state, symbol, reason, price=None, dry_run=False):
     log_decision({"type": "sell", **closed})
 
     emoji = "💰" if pnl >= 0 else "🔴"
+    send_push(
+        f"{emoji} apex SELL {symbol} {closed['pnl_pct']:+.2f}%{' (LIVE)' if LIVE_TRADING else ''}",
+        f"@ €{fill_price:.2f} · P&L €{pnl:+.2f} · {reason}",
+        priority="high",
+    )
     if EMAIL_ON_TRADE:
         send_email(
             f"{emoji} apex-trader SELL {symbol} {closed['pnl_pct']:+.2f}%{' (LIVE)' if LIVE_TRADING else ''}",

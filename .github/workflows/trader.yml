@@ -44,6 +44,7 @@ jobs:
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFY_EMAIL: ${{ secrets.GMAIL_ADDRESS }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python apex_trader.py
 
       # Runs even if the trading step failed: state may still have moved
