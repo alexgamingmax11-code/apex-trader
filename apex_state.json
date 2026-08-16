@@ -5,15 +5,15 @@
   "closed_trades": [],
   "cooldowns": {},
   "day": {
-    "date": "2026-08-15",
+    "date": "2026-08-16",
     "start_equity": 500.0,
     "halted": false
   },
   "last_signal_candle": {
-    "BTC-EUR": 1786665600,
-    "ETH-EUR": 1786665600
+    "BTC-EUR": 1786752000,
+    "ETH-EUR": 1786752000
   },
-  "last_digest_date": "2026-08-15",
+  "last_digest_date": "2026-08-16",
   "last_hold_email": 0.0,
   "last_fail_email": 0.0,
   "total_fees_eur": 0.0,
