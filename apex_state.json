@@ -1,22 +1,36 @@
 {
-  "cash_eur": 500.0,
+  "cash_eur": 375.0,
   "starting_capital_eur": 500.0,
-  "positions": {},
+  "positions": {
+    "ETH-EUR": {
+      "symbol": "ETH-EUR",
+      "qty": 0.06483772414401236,
+      "entry_price": 1930.7818349999998,
+      "entry_date": "2026-08-20T00:01:04.191282+00:00",
+      "notional_eur": 125.0,
+      "fees_eur": 0.1875,
+      "hard_stop": 1611.174692142857,
+      "highest_close": 1927.89,
+      "atr_at_entry": 53.267857142857125,
+      "last_price": 1927.89,
+      "venue_order_id": null
+    }
+  },
   "closed_trades": [],
   "cooldowns": {},
   "day": {
-    "date": "2026-08-19",
+    "date": "2026-08-20",
     "start_equity": 500.0,
     "halted": false
   },
   "last_signal_candle": {
-    "BTC-EUR": 1787011200,
-    "ETH-EUR": 1787011200
+    "BTC-EUR": 1787097600,
+    "ETH-EUR": 1787097600
   },
-  "last_digest_date": "2026-08-19",
+  "last_digest_date": "2026-08-20",
   "last_hold_email": 0.0,
   "last_fail_email": 0.0,
-  "total_fees_eur": 0.0,
+  "total_fees_eur": 0.1875,
   "created_at": "2026-08-03T15:13:17.629692+00:00",
   "live_trading": false
 }
