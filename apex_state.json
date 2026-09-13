@@ -9,10 +9,10 @@
       "entry_date": "2026-08-20T00:01:04.191282+00:00",
       "notional_eur": 125.0,
       "fees_eur": 0.1875,
-      "hard_stop": 1850.3128571428574,
-      "highest_close": 2169.92,
+      "hard_stop": 1859.8228571428572,
+      "highest_close": 2179.43,
       "atr_at_entry": 53.267857142857125,
-      "last_price": 2169.92,
+      "last_price": 2179.43,
       "venue_order_id": null
     },
     "BTC-EUR": {
@@ -25,22 +25,22 @@
       "hard_stop": 61635.48,
       "highest_close": 69874.11,
       "atr_at_entry": 1373.1049999999996,
-      "last_price": 66587.95,
+      "last_price": 66666.43,
       "venue_order_id": null
     }
   },
   "closed_trades": [],
   "cooldowns": {},
   "day": {
-    "date": "2026-09-12",
-    "start_equity": 518.180644157809,
+    "date": "2026-09-13",
+    "start_equity": 523.925536065545,
     "halted": false
   },
   "last_signal_candle": {
-    "BTC-EUR": 1789084800,
-    "ETH-EUR": 1789084800
+    "BTC-EUR": 1789171200,
+    "ETH-EUR": 1789171200
   },
-  "last_digest_date": "2026-09-12",
+  "last_digest_date": "2026-09-13",
   "last_hold_email": 0.0,
   "last_fail_email": 0.0,
   "total_fees_eur": 0.3765388423354029,
