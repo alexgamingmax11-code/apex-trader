@@ -1,20 +1,7 @@
 {
-  "cash_eur": 248.97410510973137,
+  "cash_eur": 391.7637381411803,
   "starting_capital_eur": 500.0,
   "positions": {
-    "ETH-EUR": {
-      "symbol": "ETH-EUR",
-      "qty": 0.06483772414401236,
-      "entry_price": 1930.7818349999998,
-      "entry_date": "2026-08-20T00:01:04.191282+00:00",
-      "notional_eur": 125.0,
-      "fees_eur": 0.1875,
-      "hard_stop": 2102.6628571428573,
-      "highest_close": 2422.27,
-      "atr_at_entry": 53.267857142857125,
-      "last_price": 2297.85,
-      "venue_order_id": null
-    },
     "BTC-EUR": {
       "symbol": "BTC-EUR",
       "qty": 0.0020162620501342717,
@@ -25,25 +12,40 @@
       "hard_stop": 68620.32,
       "highest_close": 76858.95,
       "atr_at_entry": 1373.1049999999996,
-      "last_price": 74369.01,
+      "last_price": 72873.17,
       "venue_order_id": null
     }
   },
-  "closed_trades": [],
+  "closed_trades": [
+    {
+      "symbol": "ETH-EUR",
+      "qty": 0.06483772414401236,
+      "entry_price": 1930.7818349999998,
+      "exit_price": 2202.2616450000005,
+      "entry_date": "2026-08-20T00:01:04.191282+00:00",
+      "exit_date": "2026-10-09T00:01:04.898489+00:00",
+      "notional_eur": 125.0,
+      "proceeds_eur": 142.78963303144891,
+      "pnl_eur": 17.789633031448915,
+      "pnl_pct": 14.231706425159132,
+      "reason": "supertrend flipped DOWN",
+      "live": false
+    }
+  ],
   "cooldowns": {},
   "day": {
-    "date": "2026-10-08",
-    "start_equity": 557.6705337605769,
+    "date": "2026-10-09",
+    "start_equity": 547.9088821031063,
     "halted": false
   },
   "last_signal_candle": {
-    "BTC-EUR": 1791331200,
-    "ETH-EUR": 1791331200
+    "BTC-EUR": 1791417600,
+    "ETH-EUR": 1791417600
   },
-  "last_digest_date": "2026-10-08",
+  "last_digest_date": "2026-10-09",
   "last_hold_email": 0.0,
   "last_fail_email": 0.0,
-  "total_fees_eur": 0.3765388423354029,
+  "total_fees_eur": 0.5910450511958669,
   "created_at": "2026-08-03T15:13:17.629692+00:00",
   "live_trading": false
 }
