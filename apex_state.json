@@ -12,7 +12,7 @@
       "hard_stop": 68620.32,
       "highest_close": 76858.95,
       "atr_at_entry": 1373.1049999999996,
-      "last_price": 74206.34,
+      "last_price": 72920.78,
       "venue_order_id": null
     }
   },
@@ -34,15 +34,15 @@
   ],
   "cooldowns": {},
   "day": {
-    "date": "2026-10-14",
-    "start_equity": 539.4928188774377,
+    "date": "2026-10-15",
+    "start_equity": 541.3831653625411,
     "halted": false
   },
   "last_signal_candle": {
-    "BTC-EUR": 1791849600,
-    "ETH-EUR": 1791849600
+    "BTC-EUR": 1791936000,
+    "ETH-EUR": 1791936000
   },
-  "last_digest_date": "2026-10-14",
+  "last_digest_date": "2026-10-15",
   "last_hold_email": 0.0,
   "last_fail_email": 0.0,
   "total_fees_eur": 0.5910450511958669,
