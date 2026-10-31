@@ -34,15 +34,15 @@
   ],
   "cooldowns": {},
   "day": {
-    "date": "2026-10-30",
+    "date": "2026-10-31",
     "start_equity": 535.416922026647,
     "halted": false
   },
   "last_signal_candle": {
-    "BTC-EUR": 1793232000,
-    "ETH-EUR": 1793232000
+    "BTC-EUR": 1793318400,
+    "ETH-EUR": 1793318400
   },
-  "last_digest_date": "2026-10-30",
+  "last_digest_date": "2026-10-31",
   "last_hold_email": 0.0,
   "last_fail_email": 0.0,
   "total_fees_eur": 0.8068485322456415,
